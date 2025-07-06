@@ -1,0 +1,87 @@
+{
+  "name": "ai-browser-controller",
+  "version": "0.1.0",
+  "description": "AI-powered browser automation controller with React frontend and Node.js backend",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:client && npm run install:server",
+    "install:client": "cd client && npm install",
+    "install:server": "cd server && npm install",
+    "dev": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"red,blue\" \"npm run server:dev\" \"npm run client:dev\"",
+    "dev:client": "cd client && npm start",
+    "dev:server": "cd server && npm run dev",
+    "build": "npm run server:build && npm run client:build",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "start": "npm run server:start",
+    "start:client": "cd client && npm start",
+    "start:server": "cd server && npm start",
+    "test": "npm run test:server && npm run test:client",
+    "test:client": "cd client && npm test -- --coverage --watchAll=false",
+    "test:server": "cd server && npm test",
+    "test:watch": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"red,blue\" \"npm run test:server -- --watch\" \"npm run test:client -- --watch\"",
+    "lint": "npm run lint:server && npm run lint:client",
+    "lint:client": "cd client && npm run lint",
+    "lint:server": "cd server && npm run lint",
+    "format": "npm run format:server && npm run format:client",
+    "format:client": "cd client && npm run format",
+    "format:server": "cd server && npm run format",
+    "clean": "npm run clean:server && npm run clean:client",
+    "clean:client": "cd client && rm -rf build node_modules",
+    "clean:server": "cd server && rm -rf dist node_modules",
+    "reset": "npm run clean && npm run install:all",
+    "security-audit": "npm audit && npm run security-audit:client && npm run security-audit:server",
+    "security-audit:client": "cd client && npm audit",
+    "security-audit:server": "cd server && npm audit",
+    "docker:build": "docker build -t ai-browser-controller .",
+    "docker:run": "docker run -p 3000:3000 -p 3001:3001 ai-browser-controller",
+    "docker:dev": "docker-compose up --build",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
+    "precommit": "npm run lint && npm run test",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
+    "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "ai",
+    "browser",
+    "automation",
+    "puppeteer",
+    "openai",
+    "react",
+    "typescript",
+    "express",
+    "websocket"
+  ],
+  "author": "AI Browser Controller Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/ai-browser-controller.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/ai-browser-controller/issues"
+  },
+  "homepage": "https://github.com/your-username/ai-browser-controller#readme",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+} 
