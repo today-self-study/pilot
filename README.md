@@ -86,13 +86,18 @@ pilot/
 - 사용량 통계 및 모니터링
 - 단위 테스트 구현
 
-### 🚧 다음 단계 계획
+### ✅ 4단계: 웹소켓 서버 구현 (SocketController) (완료)
+- **SocketController**: Socket.io 기반 실시간 웹소켓 서버
+- 클라이언트 연결 관리 및 세션 추적
+- 브라우저 인스턴스 관리 및 상태 동기화
+- 실시간 명령어 처리 파이프라인
+- 에러 핸들링 및 재연결 로직
+- 보안 검증 및 Rate Limiting
+- 성능 모니터링 및 통계 수집
+- 자동 정리 작업 및 리소스 관리
+- 포괄적인 단위 테스트 구현
 
-#### 4단계: 웹소켓 서버 구현 (SocketController)
-- Socket.io 서버 구현
-- 실시간 명령어 처리
-- 클라이언트 연결 관리
-- 에러 핸들링
+### 🚧 다음 단계 계획
 
 #### 5단계: Express 서버 메인 파일
 - 메인 서버 애플리케이션
@@ -160,6 +165,172 @@ pilot/
 - **성능 측정**: 작업 실행 시간 측정
 - **메모리 누수 감지**: 자동 메모리 누수 탐지
 - **성능 보고서**: 상세한 성능 분석 리포트
+
+### 웹소켓 서버 (SocketController)
+- **실시간 통신**: Socket.io 기반 양방향 통신
+- **세션 관리**: 클라이언트 연결 상태 추적
+- **브라우저 인스턴스 관리**: 각 클라이언트별 브라우저 상태 관리
+- **명령어 큐 관리**: 실시간 명령어 처리 파이프라인
+- **자동 정리**: 비활성 세션 및 리소스 자동 정리
+
+## Socket.io API 문서
+
+### 클라이언트 → 서버 이벤트
+
+#### `execute_command`
+사용자 명령어 실행 요청
+```javascript
+socket.emit('execute_command', {
+  userInput: '구글에서 날씨 검색해줘',
+  context: {
+    currentUrl: 'https://example.com',
+    pageTitle: 'Example Page'
+  }
+});
+```
+
+#### `get_screenshot`
+현재 페이지 스크린샷 요청
+```javascript
+socket.emit('get_screenshot');
+```
+
+#### `reset_browser`
+브라우저 인스턴스 리셋 요청
+```javascript
+socket.emit('reset_browser');
+```
+
+### 서버 → 클라이언트 이벤트
+
+#### `browser_status`
+브라우저 상태 업데이트
+```javascript
+socket.on('browser_status', (data) => {
+  console.log(data.status); // 'ready', 'busy', 'error', 'disconnected'
+});
+```
+
+#### `command_progress`
+명령어 실행 진행 상황
+```javascript
+socket.on('command_progress', (data) => {
+  console.log(data.status);      // 'parsing', 'executing', 'completed'
+  console.log(data.progress);    // 0-100
+  console.log(data.currentStep); // 현재 단계 설명
+});
+```
+
+#### `command_result`
+명령어 실행 결과
+```javascript
+socket.on('command_result', (data) => {
+  if (data.success) {
+    console.log(data.data);          // 실행 결과
+    console.log(data.executionTime); // 실행 시간 (ms)
+  } else {
+    console.log(data.error);         // 에러 메시지
+  }
+});
+```
+
+#### `screenshot_update`
+스크린샷 업데이트
+```javascript
+socket.on('screenshot_update', (data) => {
+  console.log(data.screenshot); // Base64 인코딩된 스크린샷
+  console.log(data.timestamp);  // 촬영 시각
+});
+```
+
+#### `error`
+에러 발생 알림
+```javascript
+socket.on('error', (data) => {
+  console.log(data.message);  // 에러 메시지
+  console.log(data.code);     // 에러 코드
+  console.log(data.details);  // 상세 정보
+});
+```
+
+### 연결 설정 예제
+
+```javascript
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:3000', {
+  transports: ['websocket', 'polling'],
+  timeout: 20000,
+  forceNew: true
+});
+
+// 연결 성공
+socket.on('connect', () => {
+  console.log('Connected to server');
+});
+
+// 브라우저 준비 완료
+socket.on('browser_status', (data) => {
+  if (data.status === 'ready') {
+    console.log('Browser is ready');
+    
+    // 명령어 실행 예제
+    socket.emit('execute_command', {
+      userInput: 'Google로 이동해서 "TypeScript"를 검색해줘',
+      context: {}
+    });
+  }
+});
+
+// 실행 진행 상황 추적
+socket.on('command_progress', (data) => {
+  console.log(`진행률: ${data.progress}% - ${data.currentStep}`);
+});
+
+// 실행 결과 처리
+socket.on('command_result', (data) => {
+  if (data.success) {
+    console.log('명령어 실행 성공:', data.data);
+  } else {
+    console.error('명령어 실행 실패:', data.error);
+  }
+});
+
+// 스크린샷 업데이트
+socket.on('screenshot_update', (data) => {
+  const img = document.createElement('img');
+  img.src = `data:image/png;base64,${data.screenshot}`;
+  document.body.appendChild(img);
+});
+
+// 에러 처리
+socket.on('error', (data) => {
+  console.error('Socket error:', data.message);
+});
+
+// 연결 해제
+socket.on('disconnect', (reason) => {
+  console.log('Disconnected:', reason);
+});
+```
+
+### 보안 및 제한사항
+
+#### Rate Limiting
+- 클라이언트 IP별 요청 제한: 15분간 최대 100개 요청
+- 동시 실행 제한: 클라이언트당 1개 명령어만 동시 실행 가능
+- 세션 타임아웃: 30분간 비활성 시 자동 해제
+
+#### 입력 검증
+- 명령어 길이 제한: 최대 1000자
+- 악성 스크립트 패턴 탐지 및 차단
+- URL 안전성 검사 (악성 사이트 차단)
+- XSS 공격 방지를 위한 입력 새니타이징
+
+#### 보안 헤더
+- CSP (Content Security Policy) 적용
+- HSTS (HTTP Strict Transport Security) 설정
+- X-Frame-Options, X-Content-Type-Options 설정
 
 ## 설치 및 실행
 
