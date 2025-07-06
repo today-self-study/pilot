@@ -83,6 +83,62 @@ export interface AIParseResponse {
 }
 
 /**
+ * AI 사용량 통계 타입
+ */
+export interface AIUsageStats {
+  /** 총 요청 수 */
+  totalRequests: number;
+  /** 성공 요청 수 */
+  successRequests: number;
+  /** 실패 요청 수 */
+  failedRequests: number;
+  /** 총 토큰 사용량 */
+  totalTokens: number;
+  /** 평균 응답 시간 */
+  averageResponseTime: number;
+  /** 캐시 적중률 */
+  cacheHitRate: number;
+}
+
+/**
+ * AI 프롬프트 템플릿 타입
+ */
+export interface AIPromptTemplate {
+  /** 시스템 프롬프트 */
+  system: string;
+  /** 사용자 프롬프트 템플릿 */
+  user: string;
+  /** 예제 프롬프트 */
+  examples?: string;
+}
+
+/**
+ * AI 파싱 결과 캐시 타입
+ */
+export interface AIParseCache {
+  /** 캐시 키 */
+  key: string;
+  /** 파싱 결과 */
+  result: AIParseResponse;
+  /** 생성 시간 */
+  createdAt: Date;
+  /** 사용 횟수 */
+  usage: number;
+}
+
+/**
+ * AI 검증 결과 타입
+ */
+export interface AIValidationResult {
+  /** 유효성 여부 */
+  isValid: boolean;
+  /** 에러 메시지 */
+  error?: string;
+  /** 경고 메시지 */
+  warnings?: string[];
+}
+
+/**
  * 소켓 이벤트 타입
  */
 export interface SocketEvents {
